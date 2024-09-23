@@ -11,7 +11,7 @@ import {
  } from "@/components/ui/popover";
  import { Input } from "@/components/ui/input";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from "axios";
 
 export default function Home() {
@@ -20,47 +20,72 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [isShowLoader, setIsShowLoader] = useState(false)
   const [words, setWords] =useState(0)
+  const [thread, setThread] = useState('')
+
+  const createThread = async () => {
+    const thread = await axios.post(`${url}/thread/create`)
+    setThread(thread.data);
+  }
+
+  useEffect(() => {
+    createThread()
+  }, [])
+
+  const createMessage = async () => {
+    try {  
+      await axios.post(`${url}/message/create`,{
+        content: input,
+        threadId: thread.id
+      })
+      
+    } catch (error) {
+      setIsShowLoader(false)
+    }
+  }
+
+
+  const summarize = async () => {
+    setIsShowLoader(true);
+    setResponse('');
+    setWords(0);
+    
+    await createMessage()
+    
+    const eventSource = new EventSource(`${url}/summary/create/${thread.id}`);
+
+    eventSource.addEventListener('textDelta', (event) => {
+      setIsShowLoader(false)
+      const data = JSON.parse(event.data)
+      setResponse(prevResponse => prevResponse + data.value);
+    })
+    
+    eventSource.onerror = (error) => {
+      console.error('EventSource failed:', error);
+      eventSource.close();
+      setIsShowLoader(false);
+    };
+    
+    eventSource.addEventListener('end', () => {
+      eventSource.close();
+      setIsShowLoader(false);
+      setWords(countWords(response));
+    });
+  };
 
   function countWords(text) {
     // Trim the text to remove leading and trailing whitespace
     const trimmedText = text.trim();
     
-    // If the text is empty after trimming, return 0
     if (trimmedText === '') {
       return 0;
     }
-    
-    // Split the text into words
-    // This regex splits on one or more whitespace characters
-    // It also handles punctuation by treating it as word boundaries
+
     const words = trimmedText.split(/\s+/);
-    
-    // Filter out any empty strings that may have been created by multiple spaces
+  
     const filteredWords = words.filter(word => word !== '');
-    
-    console.log(filteredWords.length);
-    
-    // Return the count of words
     return filteredWords.length;
   }
 
-  const summarize = () => {
-    setIsShowLoader(true)
-    setResponse('')
-    axios.post(`${url}/summarize`, {
-      content: input
-    })
-      .then(result => {
-      setIsShowLoader(false)
-      setResponse(result.data.data)
-      setWords(countWords(response))
-      console.log(words);
-      
-    })
-    .catch(error => {
-      console.log(error);
-    });
-  }
 
   return (
     <div className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
@@ -88,7 +113,9 @@ export default function Home() {
                 <div className="loader ms-2 mt-1" />
               </div>
             }
-              {response}
+              <span className="text-sm">
+                {response}
+              </span>
           </div>
         </div>
         <div className="flex h-14">
@@ -123,7 +150,9 @@ export default function Home() {
             </Button>
           </div>
           <div className="w-full border rounded-e-xl rounded-tr-none border-t-0 p-4 flex items-center text-zinc-400">
-            {words} words
+            <span className="text-sm">
+              {words} words
+            </span>
           </div>
         </div>
       </div>
