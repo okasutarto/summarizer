@@ -80,15 +80,15 @@ export default function Home() {
             />
           </div>
           <div className="w-full border rounded-e-xl rounded-bl-none rounded-br-none p-4 overflow-auto">
-            {/* {
+            {
               (isShowLoader)
-              && */}
+              &&
               <div className="flex items-center">
                 <span className="text-zinc-400 text-sm"> Generating Result </span> 
                 <div className="loader ms-2 mt-1" />
               </div>
-            {/* }
-              {response} */}
+            }
+              {response}
           </div>
         </div>
         <div className="flex h-14">
