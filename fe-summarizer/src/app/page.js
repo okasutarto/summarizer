@@ -42,17 +42,6 @@ export default function Home() {
         });
     try {  
       const response = await axios.post(`${url}/message/create`,formData)
-      
-      console.log(response.data);
-      
-      // const reader = response.body
-      //   .pipeTrough(new TextDecoderStream())
-      //   .getReader()
-      // while (true) {
-      //   const {value,done} = await reader.read()
-      //   if (done) break
-      //   setResponse((prev) => prev + value)
-      // }
     } catch (error) {
       setIsShowLoader(false)
     }
@@ -113,15 +102,14 @@ export default function Home() {
   
   const handleImageChange = (e) => {
     if (e.target.files) {
-      setInput(null)
-      divRef.current.innerHTML = null
+      // setInput(null)
+      // divRef.current.innerHTML = null
       filesArray = Array.from(e.target.files); // Convert FileList to Array
-      setImages(filesArray)
+
+      // Update the images state with the file objects
+      setImages(prevImages => [...prevImages, ...filesArray])
       const imageUrls = filesArray.map((file) => URL.createObjectURL(file)); // Create URLs for each image
       setSelectedImages((prevImages) => [...prevImages, ...imageUrls]); // Add new images to the state
-      // filesArray.forEach((file, index) => {
-      //       formData.append('image', file); // Append each file to FormData
-      //   });
     }
   };
 
@@ -129,20 +117,28 @@ export default function Home() {
     setSelectedImages(null);
   };
 
-  const fileInputRef = useRef(null);
+  const ImageInputRef = useRef(null);
 
-  const handleButtonClick = () => {
-      fileInputRef.current.click(); // programmatically click the hidden input
-    };
+  const handleImageUpload = () => {
+    ImageInputRef.current.click(); // programmatically click the hidden input
+  };
   return (
     <main className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
       <input
+        multiple
         type="file"
         accept="image/*"
         onChange={handleImageChange}
-        ref={fileInputRef} // reference the input
+        ref={ImageInputRef} // reference the input
         style={{ display: 'none' }} // hide the input
       />
+      {/* <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        ref={ImageInputRef} // reference the input
+        style={{ display: 'none' }} // hide the input
+      /> */}
       <div className=" border-2 rounded-2xl w-full h-fit px-9 py-9 shadow-lg">
         {/* <div className="flex justify-end mb-2">
           <ModeToggle />
@@ -196,23 +192,11 @@ export default function Home() {
               <ToggleGroupItem value="a" className="ps-0">
                 <span className="material-icons-outlined">attach_file</span>
               </ToggleGroupItem>
-              <ToggleGroupItem onClick={handleButtonClick}>
+              <ToggleGroupItem onClick={handleImageUpload}>
                 <span className="material-icons-outlined">
                 image
                 </span>
               </ToggleGroupItem>
-                {/* <Popover >
-                  <PopoverTrigger asChild>
-                    <ToggleGroupItem value="c">
-                      <span className="material-icons-outlined">
-                        link
-                      </span>
-                      <PopoverContent >
-                        <Input placeholder="https://"/>
-                      </PopoverContent>
-                    </ToggleGroupItem>
-                  </PopoverTrigger>
-                </Popover> */}
             </ToggleGroup>
             <Button
               onClick={summarize}
