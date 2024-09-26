@@ -10,15 +10,14 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // Keep the original filename
     cb(null, file.originalname)
-    
-    // Alternatively, if you want to ensure uniqueness:
-    // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    // cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
   }
 });
 
 const upload = multer({ storage: storage });
 
-messageRouter.post("/create",upload.array('images'), messageController.createMessage)
+messageRouter.post("/create",upload.fields([
+  { name: 'images', maxCount: 5 },
+  { name: 'docs', maxCount: 1 }
+]), messageController.createMessage)
 
 module.exports = messageRouter

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = require('path');
+const pdf = require('pdf-parse');
 
 const OpenAI = require("openai")
 require("dotenv").config()
@@ -14,20 +14,29 @@ class messageController {
       threadId,
       text
     } = req.body
-
-    const images = req.files;
+    
+    const images = req.files['images'] || [];
+    const docs = req.files['docs'] || [];
     
     if (text) {
       text =`"${text}"`
     }
 
-    
     const messageContent = [
       {
         type: 'text',
         text,
       }
     ];
+
+    if (docs && docs.length > 0) {
+      let pdfContent = ''
+      let dataBuffer = fs.readFileSync(docs[0].path);
+      await pdf(dataBuffer).then(function(data) {
+        pdfContent = data.text
+      });
+      messageContent[0].text = pdfContent
+    }
 
     if (images && images.length > 0) {
       for (const image of images) {
@@ -42,16 +51,8 @@ class messageController {
           },
         });
       }
-      messageContent.shift()
+      messageContent[0].text = "Summary what's on the images"
     }
-
-    // const message = await openai.beta.threads.messages.create(
-    //   threadId,
-    //   {
-    //     role: "user",
-    //     content: messageContent
-    //   }
-    // )
 
     try {
       const message = await openai.beta.threads.messages.create(
@@ -62,10 +63,8 @@ class messageController {
         }
       );
 
-      // If the message creation is successful, you can do something with the result here
       res.status(201).json("Message created successfully");
       deleteImages()
-
     } catch (error) {
       // If an error occurs during the API call, it will be caught here
       console.error("Error creating message:", error);
@@ -79,6 +78,15 @@ class messageController {
             fs.unlinkSync(image.path);
           } catch (err) {
             console.error(`Error deleting file: ${image.path}`, err);
+            // Handle the error, such as logging or reporting it
+          }
+        }
+      } else if (docs && docs.length > 0) {
+        for (const doc of docs) {
+          try {
+            fs.unlinkSync(doc.path);
+          } catch (err) {
+            console.error(`Error deleting file: ${doc.path}`, err);
             // Handle the error, such as logging or reporting it
           }
         }

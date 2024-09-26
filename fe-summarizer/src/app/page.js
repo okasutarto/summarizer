@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 
+import { Badge } from "@/components/ui/badge";
+
 import { useState, useEffect } from 'react';
 import axios from "axios";
 import { useRef } from 'react'
@@ -38,8 +40,9 @@ export default function Home() {
     formData.append('text', input);
     formData.append('threadId', thread.id);
     images.forEach((file, index) => {
-            formData.append('images', file); // Append each file to FormData
-        });
+      formData.append('images', file); // Append each file to FormData
+    });
+    formData.append('docs', docs[0])
     try {  
       const response = await axios.post(`${url}/message/create`,formData)
     } catch (error) {
@@ -97,11 +100,22 @@ export default function Home() {
     setInput(content); // You can use setInput here to store the content
   };
 
+  const removeSelectedImage = () => {
+    setSelectedImages(null);
+  };
+
+  const imageInputRef = useRef(null);
+
+  const handleImageUpload = () => {
+    imageInputRef.current.click(); // programmatically click the hidden input
+  };
+
   const [selectedImages, setSelectedImages] = useState([]);
   let filesArray = []
   
   const handleImageChange = (e) => {
     if (e.target.files) {
+      setDocs([])
       // setInput(null)
       // divRef.current.innerHTML = null
       filesArray = Array.from(e.target.files); // Convert FileList to Array
@@ -113,15 +127,28 @@ export default function Home() {
     }
   };
 
-  const removeSelectedImage = () => {
-    setSelectedImages(null);
+  const docsInputRef = useRef(null);
+
+  const handleDocsUpload = () => {
+    // setDocs([])
+    docsInputRef.current.click(); // programmatically click the hidden input
   };
 
-  const ImageInputRef = useRef(null);
+  const [docs, setDocs] = useState([])
+  
+  const handleDocsChange = (e) => {
+    if (e.target.files) {
+      setSelectedImages([])
+      setImages([])
 
-  const handleImageUpload = () => {
-    ImageInputRef.current.click(); // programmatically click the hidden input
+      setDocs(Array.from(e.target.files))
+    }
   };
+
+  const removeSelectedDocs = () => {
+    setDocs([]);
+  };
+
   return (
     <main className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
       <input
@@ -129,16 +156,16 @@ export default function Home() {
         type="file"
         accept="image/*"
         onChange={handleImageChange}
-        ref={ImageInputRef} // reference the input
+        ref={imageInputRef} // reference the input
         style={{ display: 'none' }} // hide the input
       />
-      {/* <input
+      <input
         type="file"
-        accept="image/*"
-        onChange={handleImageChange}
-        ref={ImageInputRef} // reference the input
+        accept="application/pdf"
+        onChange={handleDocsChange}
+        ref={docsInputRef} // reference the input
         style={{ display: 'none' }} // hide the input
-      /> */}
+      />
       <div className=" border-2 rounded-2xl w-full h-fit px-9 py-9 shadow-lg">
         {/* <div className="flex justify-end mb-2">
           <ModeToggle />
@@ -161,6 +188,23 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {docs.length > 0 && (
+              <div>
+                {docs.map((docs, index) => (
+                  <div key={index} style={{ margin: '10px' }}>
+                    <Badge variant="">
+                      {docs.name}
+                      <div title="Remove" onClick={removeSelectedDocs} className="cursor-pointer ms-4">
+                        <span type="button" className="text-base">
+                          x
+                        </span>
+                      </div>
+                    </Badge>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -189,7 +233,7 @@ export default function Home() {
         <div className="flex h-14">
           <div className="w-full border rounded-bl-xl border-e-0 border-t-0 flex justify-between items-center p-4">
             <ToggleGroup type="single">
-              <ToggleGroupItem value="a" className="ps-0">
+              <ToggleGroupItem className="ps-0" onClick={handleDocsUpload}>
                 <span className="material-icons-outlined">attach_file</span>
               </ToggleGroupItem>
               <ToggleGroupItem onClick={handleImageUpload}>
@@ -200,7 +244,7 @@ export default function Home() {
             </ToggleGroup>
             <Button
               onClick={summarize}
-              disabled={isShowLoader || !selectedImages.length && !input}
+              disabled={isShowLoader || !selectedImages.length && !input && !docs}
             >
               {isShowLoader ? 'Summarizing . . .' : 'Summarize'}
             </Button>
