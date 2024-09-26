@@ -8,19 +8,21 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
- } from "@/components/ui/popover";
- import { Input } from "@/components/ui/input";
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 
 import { useState, useEffect } from 'react';
 import axios from "axios";
+import { useRef } from 'react'
 
 export default function Home() {
   const url = process.env.NEXT_PUBLIC_BASE_URL
   const [response, setResponse] = useState('')
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(null)
   const [isShowLoader, setIsShowLoader] = useState(false)
   const [words, setWords] =useState(0)
   const [thread, setThread] = useState('')
+  const [images, setImages] = useState([])
 
   const createThread = async () => {
     const thread = await axios.post(`${url}/thread/create`)
@@ -32,12 +34,25 @@ export default function Home() {
   }, [])
 
   const createMessage = async () => {
+    const formData = new FormData();
+    formData.append('text', input);
+    formData.append('threadId', thread.id);
+    images.forEach((file, index) => {
+            formData.append('images', file); // Append each file to FormData
+        });
     try {  
-      await axios.post(`${url}/message/create`,{
-        content: input,
-        threadId: thread.id
-      })
+      const response = await axios.post(`${url}/message/create`,formData)
       
+      console.log(response.data);
+      
+      // const reader = response.body
+      //   .pipeTrough(new TextDecoderStream())
+      //   .getReader()
+      // while (true) {
+      //   const {value,done} = await reader.read()
+      //   if (done) break
+      //   setResponse((prev) => prev + value)
+      // }
     } catch (error) {
       setIsShowLoader(false)
     }
@@ -86,24 +101,81 @@ export default function Home() {
     return filteredWords.length;
   }
 
+  const divRef = useRef(null);
 
+  const handleInput = () => {
+    let content = divRef.current.innerHTML;
+    setInput(content); // You can use setInput here to store the content
+  };
+
+  const [selectedImages, setSelectedImages] = useState([]);
+  let filesArray = []
+  
+  const handleImageChange = (e) => {
+    if (e.target.files) {
+      setInput(null)
+      divRef.current.innerHTML = null
+      filesArray = Array.from(e.target.files); // Convert FileList to Array
+      setImages(filesArray)
+      const imageUrls = filesArray.map((file) => URL.createObjectURL(file)); // Create URLs for each image
+      setSelectedImages((prevImages) => [...prevImages, ...imageUrls]); // Add new images to the state
+      // filesArray.forEach((file, index) => {
+      //       formData.append('image', file); // Append each file to FormData
+      //   });
+    }
+  };
+
+  const removeSelectedImage = () => {
+    setSelectedImages(null);
+  };
+
+  const fileInputRef = useRef(null);
+
+  const handleButtonClick = () => {
+      fileInputRef.current.click(); // programmatically click the hidden input
+    };
   return (
-    <div className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
+    <main className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        ref={fileInputRef} // reference the input
+        style={{ display: 'none' }} // hide the input
+      />
       <div className=" border-2 rounded-2xl w-full h-fit px-9 py-9 shadow-lg">
         {/* <div className="flex justify-end mb-2">
           <ModeToggle />
         </div> */}
         <div className="flex h-96">
-          <div className="w-full border border-e-0 rounded-s-xl rounded-bl-none p-4">
-            <Textarea
-              className="p-0"
-              placeholder='Start typing or paste your content here . . .'
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-              }}
-            />
+          <div
+            contentEditable={selectedImages.length ? false : true}
+            ref={divRef}
+            className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm"
+            placeholder='Start typing or paste your content here . . .'
+            onInput={handleInput}
+          >
+            {selectedImages.length > 0 && (
+              <div>
+                <h2>Image Previews:</h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                  {selectedImages.map((image, index) => (
+                    <div key={index} style={{ margin: '10px' }}>
+                      <img src={image} alt={`Selected Image ${index}`} style={{ width: '100px' }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+          {/* <Textarea
+            className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none"
+            placeholder='Start typing or paste your content here . . .'
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value)
+            }}
+          /> */}
           <div className="w-full border rounded-e-xl rounded-bl-none rounded-br-none p-4 overflow-auto">
             {
               (isShowLoader)
@@ -124,27 +196,27 @@ export default function Home() {
               <ToggleGroupItem value="a" className="ps-0">
                 <span className="material-icons-outlined">attach_file</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="b">
+              <ToggleGroupItem onClick={handleButtonClick}>
                 <span className="material-icons-outlined">
                 image
                 </span>
               </ToggleGroupItem>
-                <Popover>
-                  <PopoverTrigger>
+                {/* <Popover >
+                  <PopoverTrigger asChild>
                     <ToggleGroupItem value="c">
                       <span className="material-icons-outlined">
                         link
                       </span>
-                      <PopoverContent>
+                      <PopoverContent >
                         <Input placeholder="https://"/>
                       </PopoverContent>
                     </ToggleGroupItem>
                   </PopoverTrigger>
-                </Popover>
+                </Popover> */}
             </ToggleGroup>
             <Button
               onClick={summarize}
-              disabled={isShowLoader || !input}
+              disabled={isShowLoader || !selectedImages.length && !input}
             >
               {isShowLoader ? 'Summarizing . . .' : 'Summarize'}
             </Button>
@@ -156,6 +228,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
