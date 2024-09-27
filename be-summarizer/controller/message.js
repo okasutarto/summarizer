@@ -9,87 +9,87 @@ const openai = new OpenAI({
 });
 
 class messageController {
-  static async createMessage (req, res) {
-    let {
-      threadId,
-      text
-    } = req.body
-    
-    const images = req.files['images'] || [];
-    const docs = req.files['docs'] || [];
-    
+  static async createMessage(req, res) {
+    try {
+      const { threadId, text } = req.body;
+      const images = req.files['images'] || [];
+      const docs = req.files['docs'] || [];
+
+      const messageContent = await messageController.buildMessageContent(text, docs, images);
+
+      await messageController.sendMessageToOpenAI(threadId, messageContent);
+
+      res.status(201).json("Message created successfully");
+    } catch (error) {
+      console.error("Error creating message:", error);
+      res.status(500).json("Error creating message");
+    } finally {
+      await messageController.deleteFiles(req.files);
+    }
+  }
+
+  static async buildMessageContent(text, docs, images) {
+    let messageContent = [];
+
     if (text) {
-      text =`"${text}"`
+      messageContent.push({
+        type: 'text',
+        text: `"${text}"`,
+      });
     }
 
-    const messageContent = [
-      {
-        type: 'text',
-        text,
-      }
-    ];
-
     if (docs && docs.length > 0) {
-      let pdfContent = ''
-      let dataBuffer = fs.readFileSync(docs[0].path);
-      await pdf(dataBuffer).then(function(data) {
-        pdfContent = data.text
-      });
-      messageContent[0].text = pdfContent
+      const pdfContent = await messageController.extractPdfContent(docs[0].path);
+      messageContent = [{
+        type: 'text',
+        text: pdfContent,
+      }];
     }
 
     if (images && images.length > 0) {
-      for (const image of images) {
-        const file = await openai.files.create({
-          file: fs.createReadStream(image.path),
-          purpose: "vision",
-        })
-        messageContent.push({
-          type: 'image_file',
-          image_file: {
-            file_id: file.id,
-          },
-        });
-      }
-      messageContent[0].text = "Summary what's on the images"
+      messageContent = await messageController.processImages(images);
     }
 
-    try {
-      const message = await openai.beta.threads.messages.create(
-        threadId,
-        {
-          role: "user",
-          content: messageContent
-        }
-      );
+    return messageContent;
+  }
 
-      res.status(201).json("Message created successfully");
-      deleteImages()
-    } catch (error) {
-      // If an error occurs during the API call, it will be caught here
-      console.error("Error creating message:", error);
-      deleteImages()
+  static async extractPdfContent(filePath) {
+    const dataBuffer = await fs.promises.readFile(filePath);
+    const data = await pdf(dataBuffer);
+    return data.text;
+  }
+
+  static async processImages(images) {
+    const imageContent = [];
+    for (const image of images) {
+      const file = await openai.files.create({
+        file: fs.createReadStream(image.path),
+        purpose: "vision",
+      });
+      imageContent.push({
+        type: 'image_file',
+        image_file: {
+          file_id: file.id,
+        },
+      });
     }
+    return imageContent;
+  }
 
-    function deleteImages () {
-      if (images && images.length > 0) {
-        for (const image of images) {
-          try {
-            fs.unlinkSync(image.path);
-          } catch (err) {
-            console.error(`Error deleting file: ${image.path}`, err);
-            // Handle the error, such as logging or reporting it
-          }
-        }
-      } else if (docs && docs.length > 0) {
-        for (const doc of docs) {
-          try {
-            fs.unlinkSync(doc.path);
-          } catch (err) {
-            console.error(`Error deleting file: ${doc.path}`, err);
-            // Handle the error, such as logging or reporting it
-          }
-        }
+  static async sendMessageToOpenAI(threadId, content) {
+    await openai.beta.threads.messages.create(threadId, {
+      role: "user",
+      content,
+    });
+  }
+
+  static async deleteFiles(files) {
+    const allFiles = [...(files['images'] || []), ...(files['docs'] || [])];
+    for (const file of allFiles) {
+      try {
+        await fs.promises.unlink(file.path);
+      } catch (err) {
+        console.error(`Error deleting file: ${file.path}`, err);
       }
     }
   }
