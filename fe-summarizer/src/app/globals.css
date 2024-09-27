@@ -120,8 +120,8 @@ body {
   margin-bottom: 0.5em;
 }
 
-.summary-container strong {
-  margin-top: 0.5em;
+.summary-container hr {
+  margin-bottom: 0.5em;
 }
 
 .summary-container ul,

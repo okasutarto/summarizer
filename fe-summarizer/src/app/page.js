@@ -17,6 +17,7 @@ import { useState, useEffect } from 'react';
 import axios from "axios";
 import { useRef } from 'react'
 import ReactMarkdown from 'react-markdown';
+import InputArea from "@/components/inputArea";
 
 export default function Home() {
   const url = process.env.NEXT_PUBLIC_BASE_URL
@@ -162,111 +163,60 @@ export default function Home() {
         style={{ display: 'none' }} // hide the input
       />
       <div className=" border-2 rounded-2xl w-full h-fit px-9 py-9 shadow-lg">
-        {/* <div className="flex justify-end mb-2">
-          <ModeToggle />
-        </div> */}
         <div className="flex h-96">
-          {
-            !selectedImages.length && !docs.length && (
-            <Textarea
-              className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none"
-              placeholder='Start typing or paste your content here . . .'
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-              }}
-            />
-            )
-          }
+          <InputArea
+            selectedImages={selectedImages}
+            docs={docs}
+            input={input}
+            setInput={setInput}
+            handleRemoveImage={handleRemoveImage}
+            removeSelectedDocs={removeSelectedDocs}
+          />
 
-          {selectedImages.length > 0 && (
-            <div
-              className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap"
-            >
-              <div className="container mx-auto">
-                <div className="flex flex-wrap -m-2">
-                  {selectedImages.map((image, index) => (
-                    <div key={index} className="relative p-2">
-                      <div className="relative w-24 h-24 group">
-                        <img 
-                          src={image} 
-                          alt={`Selected Image ${index}`} 
-                          className="w-full h-full object-cover rounded-md border-2 border-gray-200"
-                        />
-                        <button 
-                          onClick={() => handleRemoveImage(index)} 
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md hover:bg-red-700 transition-colors duration-200"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+          <div className="w-full">
+            <div className="w-full h-full border rounded-e-xl rounded-bl-none rounded-br-none p-4 overflow-auto">
+              {
+                (isShowLoader)
+                &&
+                <div className="flex items-center">
+                  <span className="text-zinc-400 text-sm"> Generating Result </span> 
+                  <div className="loader ms-2 mt-1" />
                 </div>
-              </div>
+              }
+                <span className="summary-container">
+                  <ReactMarkdown>{response}</ReactMarkdown>
+                </span>
             </div>
-          )}
-
-          {docs.length > 0 && (
-            <div
-            className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap"
-            >
-              <div>
-                {docs.map((docs, index) => (
-                  <div key={index} style={{ margin: '10px' }}>
-                    <Badge variant="" disabled>
-                      {docs.name}
-                      <div title="Remove" onClick={removeSelectedDocs} className="cursor-pointer ms-4">
-                        <span type="button" className="text-base">
-                          x
-                        </span>
-                      </div>
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="w-full border rounded-e-xl rounded-bl-none rounded-br-none p-4 overflow-auto">
-            {
-              (isShowLoader)
-              &&
-              <div className="flex items-center">
-                <span className="text-zinc-400 text-sm"> Generating Result </span> 
-                <div className="loader ms-2 mt-1" />
-              </div>
-            }
-              <span className="summary-container">
-                <ReactMarkdown>{response}</ReactMarkdown>
-              </span>
           </div>
         </div>
+
         <div className="flex h-14">
-          <div className="w-full border rounded-bl-xl border-e-0 border-t-0 flex justify-between items-center p-4">
-            <ToggleGroup type="single">
-              <ToggleGroupItem className="ps-0" onClick={handleDocsUpload}>
-                <span className="material-icons-outlined">attach_file</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem onClick={handleImageUpload}>
-                <span className="material-icons-outlined">
-                image
-                </span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <Button
-              onClick={summarize}
-              disabled={isShowLoader || !selectedImages.length && !input && !docs.length}
-            >
-              {isShowLoader ? 'Summarizing . . .' : 'Summarize'}
-            </Button>
+          <div className="w-full">
+            <div className="w-full h-full border rounded-bl-xl border-e-0 border-t-0 flex justify-between items-center p-4">
+              <ToggleGroup type="single">
+                <ToggleGroupItem className="ps-0" onClick={handleDocsUpload}>
+                  <span className="material-icons-outlined">attach_file</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem onClick={handleImageUpload}>
+                  <span className="material-icons-outlined">
+                  image
+                  </span>
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <Button
+                onClick={summarize}
+                disabled={isShowLoader || !selectedImages.length && !input && !docs.length}
+              >
+                {isShowLoader ? 'Summarizing . . .' : 'Summarize'}
+              </Button>
+            </div>
           </div>
-          <div className="w-full border rounded-e-xl rounded-tr-none border-t-0 p-4 flex items-center text-zinc-400">
-            <span className="text-sm">
-              {words} words
-            </span>
+          <div className="w-full">
+            <div className="w-full h-full border rounded-e-xl rounded-tr-none border-t-0 p-4 flex items-center text-zinc-400">
+              <span className="text-sm">
+                {words} words
+              </span>
+            </div>
           </div>
         </div>
       </div>
