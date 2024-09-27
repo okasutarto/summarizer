@@ -93,13 +93,6 @@ export default function Home() {
     return filteredWords.length;
   }
 
-  const divRef = useRef(null);
-
-  const handleInput = () => {
-    let content = divRef.current.innerHTML;
-    setInput(content); // You can use setInput here to store the content
-  };
-
   const imageInputRef = useRef(null);
 
   const handleImageUpload = () => {
@@ -112,8 +105,8 @@ export default function Home() {
   
   const handleImageChange = (e) => {
     if (e.target.files) {
+      setInput(null)
       setDocs([])
-      // setInput(null)
       // divRef.current.innerHTML = null
       filesArray = Array.from(e.target.files); // Convert FileList to Array
 
@@ -139,9 +132,9 @@ export default function Home() {
   
   const handleDocsChange = (e) => {
     if (e.target.files) {
+      setInput(null)
       setSelectedImages([])
       setImages([])
-
       setDocs(Array.from(e.target.files))
     }
   };
@@ -149,6 +142,7 @@ export default function Home() {
   const removeSelectedDocs = () => {
     setDocs([]);
   };
+
 
   return (
     <main className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
@@ -172,14 +166,23 @@ export default function Home() {
           <ModeToggle />
         </div> */}
         <div className="flex h-96">
-          <div
-            contentEditable={selectedImages.length || docs.length ? false : true}
-            ref={divRef}
-            className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm"
-            placeholder='Start typing or paste your content here . . .'
-            onInput={handleInput}
-          >
-            {selectedImages.length > 0 && (
+          {
+            !selectedImages.length && !docs.length && (
+            <Textarea
+              className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none"
+              placeholder='Start typing or paste your content here . . .'
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value)
+              }}
+            />
+            )
+          }
+
+          {selectedImages.length > 0 && (
+            <div
+              className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap"
+            >
               <div className="container mx-auto">
                 <div className="flex flex-wrap -m-2">
                   {selectedImages.map((image, index) => (
@@ -203,9 +206,13 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {docs.length > 0 && (
+          {docs.length > 0 && (
+            <div
+            className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap"
+            >
               <div>
                 {docs.map((docs, index) => (
                   <div key={index} style={{ margin: '10px' }}>
@@ -220,16 +227,9 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-          {/* <Textarea
-            className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none"
-            placeholder='Start typing or paste your content here . . .'
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value)
-            }}
-          /> */}
+            </div>
+          )}
+
           <div className="w-full border rounded-e-xl rounded-bl-none rounded-br-none p-4 overflow-auto">
             {
               (isShowLoader)
