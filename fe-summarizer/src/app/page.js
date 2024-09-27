@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from 'react';
 import axios from "axios";
 import { useRef } from 'react'
+import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
   const url = process.env.NEXT_PUBLIC_BASE_URL
@@ -24,7 +25,6 @@ export default function Home() {
   const [isShowLoader, setIsShowLoader] = useState(false)
   const [words, setWords] =useState(0)
   const [thread, setThread] = useState('')
-  const [images, setImages] = useState([])
 
   const createThread = async () => {
     const thread = await axios.post(`${url}/thread/create`)
@@ -100,16 +100,13 @@ export default function Home() {
     setInput(content); // You can use setInput here to store the content
   };
 
-  const removeSelectedImage = () => {
-    setSelectedImages(null);
-  };
-
   const imageInputRef = useRef(null);
 
   const handleImageUpload = () => {
     imageInputRef.current.click(); // programmatically click the hidden input
   };
 
+  const [images, setImages] = useState([])
   const [selectedImages, setSelectedImages] = useState([]);
   let filesArray = []
   
@@ -127,10 +124,14 @@ export default function Home() {
     }
   };
 
+  const handleRemoveImage = (indexToRemove) => {
+    setSelectedImages(selectedImages.filter((_, index) => index !== indexToRemove));
+    setImages(images.filter((_, index) => index !== indexToRemove));
+  };
+
   const docsInputRef = useRef(null);
 
   const handleDocsUpload = () => {
-    // setDocs([])
     docsInputRef.current.click(); // programmatically click the hidden input
   };
 
@@ -172,19 +173,32 @@ export default function Home() {
         </div> */}
         <div className="flex h-96">
           <div
-            contentEditable={selectedImages.length ? false : true}
+            contentEditable={selectedImages.length || docs.length ? false : true}
             ref={divRef}
             className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm"
             placeholder='Start typing or paste your content here . . .'
             onInput={handleInput}
           >
             {selectedImages.length > 0 && (
-              <div>
-                <h2>Image Previews:</h2>
-                <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+              <div className="container mx-auto">
+                <div className="flex flex-wrap -m-2">
                   {selectedImages.map((image, index) => (
-                    <div key={index} style={{ margin: '10px' }}>
-                      <img src={image} alt={`Selected Image ${index}`} style={{ width: '100px' }} />
+                    <div key={index} className="relative p-2">
+                      <div className="relative w-24 h-24 group">
+                        <img 
+                          src={image} 
+                          alt={`Selected Image ${index}`} 
+                          className="w-full h-full object-cover rounded-md border-2 border-gray-200"
+                        />
+                        <button 
+                          onClick={() => handleRemoveImage(index)} 
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md hover:bg-red-700 transition-colors duration-200"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -195,7 +209,7 @@ export default function Home() {
               <div>
                 {docs.map((docs, index) => (
                   <div key={index} style={{ margin: '10px' }}>
-                    <Badge variant="">
+                    <Badge variant="" disabled>
                       {docs.name}
                       <div title="Remove" onClick={removeSelectedDocs} className="cursor-pointer ms-4">
                         <span type="button" className="text-base">
@@ -225,8 +239,8 @@ export default function Home() {
                 <div className="loader ms-2 mt-1" />
               </div>
             }
-              <span className="text-sm">
-                {response}
+              <span className="summary-container">
+                <ReactMarkdown>{response}</ReactMarkdown>
               </span>
           </div>
         </div>
@@ -244,7 +258,7 @@ export default function Home() {
             </ToggleGroup>
             <Button
               onClick={summarize}
-              disabled={isShowLoader || !selectedImages.length && !input && !docs}
+              disabled={isShowLoader || !selectedImages.length && !input && !docs.length}
             >
               {isShowLoader ? 'Summarizing . . .' : 'Summarize'}
             </Button>
