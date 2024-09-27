@@ -104,3 +104,34 @@ body {
 }
 
 @import 'material-icons/iconfont/material-icons.css';
+
+.summary-container {
+  font-size: 0.875rem; /* equivalent to text-sm */
+}
+
+.summary-container h1,
+.summary-container h2,
+.summary-container h3,
+.summary-container h4 {
+  margin-bottom: 0.5em;
+}
+
+.summary-container p {
+  margin-bottom: 0.5em;
+}
+
+.summary-container strong {
+  margin-top: 0.5em;
+}
+
+.summary-container ul,
+.summary-container ol {
+  list-style-type: disc; /* or 'circle', 'square' for unordered lists */
+  margin-left: 1.5em;
+  margin-bottom: 1em;
+}
+
+.summary-container li {
+  display: list-item;
+  margin-bottom: 0.5em;
+}
