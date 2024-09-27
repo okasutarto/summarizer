@@ -21,7 +21,7 @@ const InputArea = ({
       )}
 
       {selectedImages.length > 0 && (
-        <div className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap">
+        <div className="p-4 w-ful h-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap">
           <div className="container mx-auto">
             <div className="flex flex-wrap -m-2">
               {selectedImages.map((image, index) => (
@@ -58,7 +58,7 @@ const InputArea = ({
       )}
 
       {docs.length > 0 && (
-        <div className="p-4 w-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap">
+        <div className="p-4 w-full h-full border border-e-0 rounded-s-xl rounded-bl-none outline-none text-sm overflow-auto text-wrap">
           {docs.map((doc, index) => (
             <div key={index}>
               <Badge variant="" disabled>
