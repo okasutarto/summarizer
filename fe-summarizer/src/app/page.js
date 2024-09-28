@@ -34,13 +34,18 @@ export default function Home() {
   }, [])
 
   const createMessage = async () => {
+    console.log(selectedImagesUrl);
+    
     const formData = new FormData();
     formData.append('text', input);
     formData.append('threadId', thread.id);
-    images.forEach((file, index) => {
+    images.forEach((file) => {
       formData.append('images', file); // Append each file to FormData
     });
     formData.append('docs', docs[0])
+    // selectedImagesUrl.forEach((url) => {
+      formData.append('urls', selectedImagesUrl)
+    // })
     try {  
       const response = await axios.post(`${url}/message/create`,formData)
     } catch (error) {
@@ -118,6 +123,7 @@ export default function Home() {
   const handleRemoveImage = (indexToRemove) => {
     setSelectedImages(selectedImages.filter((_, index) => index !== indexToRemove));
     setImages(images.filter((_, index) => index !== indexToRemove));
+    setSelectedImagesUrl(selectedImagesUrl.filter((_, index) => index !== indexToRemove))
   };
 
   const docsInputRef = useRef(null);
@@ -132,6 +138,7 @@ export default function Home() {
     if (e.target.files) {
       setInput(null)
       setSelectedImages([])
+      selectedImagesUrl([])
       setImages([])
       setDocs(Array.from(e.target.files))
     }
@@ -141,7 +148,37 @@ export default function Home() {
     setDocs([]);
   };
 
-    const [imageUrl, setImageUrl] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+
+  const onCloseDialog = () => {
+    setImageUrl('')
+  }
+
+  const [isValidImageUrl, setIsValidImageUrl] = useState(false)
+
+  function isImgUrl(url) {
+    const img = new Image();
+    img.src = url;
+    return new Promise((resolve) => {
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+    });
+  }
+
+  const onInputImageUrl = async (e) => {
+    setImageUrl(e)
+    const isValid = await isImgUrl(e)
+    setTimeout(() => {
+      setIsValidImageUrl(isValid)
+    }, 1000);
+  }
+
+  const [selectedImagesUrl, setSelectedImagesUrl] = useState([])
+  const onInserImageUrl = () => {
+    setSelectedImages((prevImages) => [...prevImages, imageUrl]);
+    setSelectedImagesUrl((prevImages) => [...prevImages, imageUrl]);
+    setImageUrl('')
+  }
 
   return (
     <main className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
@@ -212,7 +249,10 @@ export default function Home() {
                       </div>
                       <UrlDialog
                         imageUrl={imageUrl}
-                        setImageUrl={setImageUrl}
+                        onCloseDialog={onCloseDialog}
+                        isValidImageUrl={isValidImageUrl}
+                        onInputImageUrl={onInputImageUrl}
+                        onInserImageUrl={onInserImageUrl}
                       />
                     </div>
                   </PopoverContent>

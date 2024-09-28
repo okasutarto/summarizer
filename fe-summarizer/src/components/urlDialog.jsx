@@ -12,9 +12,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
 
-export function UrlDialog({imageUrl, setImageUrl}) {
+export function UrlDialog({
+    imageUrl,
+    onCloseDialog,
+    isValidImageUrl,
+    onInputImageUrl,
+    onInserImageUrl
+  }) {
+
   useEffect(() => {
-    console.log(imageUrl)
+    
   }, [])
 
   return (
@@ -38,20 +45,41 @@ export function UrlDialog({imageUrl, setImageUrl}) {
               // defaultValue="https://ui.shadcn.com/docs/installation"
               value={imageUrl}
               placeholder="Image url"
-              onChange={(e) => setImageUrl(e.target.value)}
+              onChange={(e) => onInputImageUrl(e.target.value)}
             />
+            <div className="flex justify-center">
+                { 
+                  (isValidImageUrl && imageUrl) && 
+                  <div className="w-24 h-24 group">
+                    <img
+                      src={imageUrl}
+                      className="w-full h-full object-cover rounded-md border-2 border-gray-200"
+                    />
+                  </div>
+                }
+                { 
+                  (!isValidImageUrl && imageUrl) &&
+                  <span className="text-sm">
+                    <span type="button" className="text-base text-red-500 me-1 font-bold">
+                      x
+                    </span>
+                    Invalid image URL
+                  </span>
+                }
+            </div>
           </div>
         </div>
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
+            <Button type="button" variant="secondary" onClick={onCloseDialog}>
               Close
             </Button>
           </DialogClose>
           <DialogClose asChild>
             <Button
               type="button"
-              disabled={!imageUrl}
+              disabled={!imageUrl || !isValidImageUrl}
+              onClick={onInserImageUrl}
             >
               Insert
             </Button>

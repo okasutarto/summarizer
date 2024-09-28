@@ -1,7 +1,8 @@
 const fs = require('fs');
 const pdf = require('pdf-parse');
 
-const OpenAI = require("openai")
+const OpenAI = require("openai");
+const { log } = require('console');
 require("dotenv").config()
 
 const openai = new OpenAI({
@@ -11,11 +12,14 @@ const openai = new OpenAI({
 class messageController {
   static async createMessage(req, res) {
     try {
-      const { threadId, text } = req.body;
+      const { threadId, text, urls } = req.body;
+
+      const urlsArray = urls.split(',');
+
       const images = req.files['images'] || [];
       const docs = req.files['docs'] || [];
 
-      const messageContent = await messageController.buildMessageContent(text, docs, images);
+      const messageContent = await messageController.buildMessageContent(text, docs, images, urlsArray);
 
       await messageController.sendMessageToOpenAI(threadId, messageContent);
 
@@ -28,7 +32,7 @@ class messageController {
     }
   }
 
-  static async buildMessageContent(text, docs, images) {
+  static async buildMessageContent(text, docs, images, urlsArray) {
     let messageContent = [];
 
     if (text) {
@@ -50,6 +54,10 @@ class messageController {
       messageContent = await messageController.processImages(images);
     }
 
+    if (urlsArray && urlsArray.length > 0) {
+      messageContent = await messageController.processUrls(urlsArray);
+    }
+    
     return messageContent;
   }
 
@@ -74,6 +82,19 @@ class messageController {
       });
     }
     return imageContent;
+  }
+
+  static async processUrls(urlsArray) {
+    const urlContent = [];
+    for (const url of urlsArray) {
+      urlContent.push({
+        type: 'image_url',
+        image_url: {
+          url: url,
+        },
+      });
+    }
+    return urlContent;
   }
 
   static async sendMessageToOpenAI(threadId, content) {
