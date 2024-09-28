@@ -1,7 +1,5 @@
 "use client"
 
-import Textarea from "@/components/ui/textarea";
-import { ModeToggle } from "@/components/ui/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { 
@@ -9,9 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-
-import { Badge } from "@/components/ui/badge";
 
 import { useState, useEffect } from 'react';
 import axios from "axios";
@@ -19,10 +14,12 @@ import { useRef } from 'react'
 import ReactMarkdown from 'react-markdown';
 import InputArea from "@/components/inputArea";
 
+import { UrlDialog } from "@/components/urlDialog";
+
 export default function Home() {
   const url = process.env.NEXT_PUBLIC_BASE_URL
   const [response, setResponse] = useState('')
-  const [input, setInput] = useState(null)
+  const [input, setInput] = useState('')
   const [isShowLoader, setIsShowLoader] = useState(false)
   const [words, setWords] =useState(0)
   const [thread, setThread] = useState('')
@@ -144,6 +141,7 @@ export default function Home() {
     setDocs([]);
   };
 
+    const [imageUrl, setImageUrl] = useState('')
 
   return (
     <main className="grid items-center justify-items-center p-8 pb-20 gap-16 sm:p-40 font-[family-name:var(--font-geist-sans)]">
@@ -194,15 +192,33 @@ export default function Home() {
           <div className="w-full">
             <div className="w-full h-full border rounded-bl-xl border-e-0 border-t-0 flex justify-between items-center p-4">
               <ToggleGroup type="single">
-                <ToggleGroupItem className="ps-0" onClick={handleDocsUpload}>
+                <ToggleGroupItem onClick={handleDocsUpload}>
                   <span className="material-icons-outlined">attach_file</span>
                 </ToggleGroupItem>
-                <ToggleGroupItem onClick={handleImageUpload}>
-                  <span className="material-icons-outlined">
-                  image
-                  </span>
-                </ToggleGroupItem>
+                
+                <Popover>
+                  <PopoverTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-transparent h-9 px-3">
+                    <span className="material-icons-outlined">
+                      image
+                    </span>
+                  </PopoverTrigger>
+                  <PopoverContent>
+                    <div className="grid">
+                      <div className="flex items-center justify-center text-sm gap-2 cursor-pointer hover:bg-accent p-2" onClick={handleImageUpload}>
+                        <span className="material-icons-outlined">file_upload</span>
+                        {/* <span className="test-sm"> */}
+                          Upload image
+                        {/* </span> */}
+                      </div>
+                      <UrlDialog
+                        imageUrl={imageUrl}
+                        setImageUrl={setImageUrl}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </ToggleGroup>
+              
               <Button
                 onClick={summarize}
                 disabled={isShowLoader || !selectedImages.length && !input && !docs.length}
@@ -221,5 +237,75 @@ export default function Home() {
         </div>
       </div>
     </main>
+
+  //   <main className="container flex items-center justify-center max-h-screen mx-auto px-4 py-8 sm:px-6 lg:px-8">
+  //   <input
+  //     multiple
+  //     type="file"
+  //     accept="image/*"
+  //     onChange={handleImageChange}
+  //     ref={imageInputRef}
+  //     className="hidden"
+  //   />
+  //   <input
+  //     type="file"
+  //     accept="application/pdf"
+  //     onChange={handleDocsChange}
+  //     ref={docsInputRef}
+  //     className="hidden"
+  //   />
+  //   <div className="w-full border-2 rounded-2xl shadow-lg overflow-hidden p-9">
+  //     <div className="flex flex-col lg:flex-row h-96">
+  //       <div className="lg:w-1/2 border-b lg:border-b-0 lg:border-r h-full">
+  //         <InputArea
+  //           selectedImages={selectedImages}
+  //           docs={docs}
+  //           input={input}
+  //           setInput={setInput}
+  //           handleRemoveImage={handleRemoveImage}
+  //           removeSelectedDocs={removeSelectedDocs}
+  //         />
+  //       </div>
+  //       <div className="lg:w-1/2 h-full">
+  //         <div className="h-full p-4 overflow-auto">
+  //           {isShowLoader && (
+  //             <div className="flex items-center">
+  //               <span className="text-zinc-400 text-sm">Generating Result</span>
+  //               <div className="loader ms-2 mt-1" />
+  //             </div>
+  //           )}
+  //           <span className="summary-container">
+  //             <ReactMarkdown>{response}</ReactMarkdown>
+  //           </span>
+  //         </div>
+  //       </div>
+  //     </div>
+  //     <div className="flex flex-col sm:flex-row border-t">
+  //       <div className="sm:w-1/2 border-b sm:border-b-0 sm:border-r">
+  //         <div className="p-4 flex justify-between items-center">
+  //           <ToggleGroup type="single" className="flex-wrap">
+  //             <ToggleGroupItem className="ps-0" onClick={handleDocsUpload}>
+  //               <span className="material-icons-outlined">attach_file</span>
+  //             </ToggleGroupItem>
+  //             <ToggleGroupItem onClick={handleImageUpload}>
+  //               <span className="material-icons-outlined">image</span>
+  //             </ToggleGroupItem>
+  //           </ToggleGroup>
+  //           <Button
+  //             onClick={summarize}
+  //             disabled={isShowLoader || (!selectedImages.length && !input && !docs.length)}
+  //           >
+  //             {isShowLoader ? 'Summarizing...' : 'Summarize'}
+  //           </Button>
+  //         </div>
+  //       </div>
+  //       <div className="sm:w-1/2">
+  //         <div className="p-4 flex items-center text-zinc-400">
+  //           <span className="text-sm">{words} words</span>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // </main>
   );
 }
