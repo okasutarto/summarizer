@@ -13,8 +13,11 @@ class messageController {
   static async createMessage(req, res) {
     try {
       const { threadId, text, urls } = req.body;
-
-      const urlsArray = urls.split(',');
+      
+      let urlsArray = []
+      if (urls) {
+        urlsArray = urls.split(',');
+      }
 
       const images = req.files['images'] || [];
       const docs = req.files['docs'] || [];

@@ -34,8 +34,6 @@ export default function Home() {
   }, [])
 
   const createMessage = async () => {
-    console.log(selectedImagesUrl);
-    
     const formData = new FormData();
     formData.append('text', input);
     formData.append('threadId', thread.id);
@@ -138,7 +136,7 @@ export default function Home() {
     if (e.target.files) {
       setInput(null)
       setSelectedImages([])
-      selectedImagesUrl([])
+      setSelectedImagesUrl([])
       setImages([])
       setDocs(Array.from(e.target.files))
     }
@@ -214,8 +212,15 @@ export default function Home() {
                 (isShowLoader)
                 &&
                 <div className="flex items-center">
-                  <span className="text-zinc-400 text-sm"> Generating Result </span> 
-                  <div className="loader ms-2 mt-1" />
+                  <div className="me-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24" width="12" height="12">
+                      <path d="M10,21.236,6.755,14.745.264,11.5,6.755,8.255,10,1.764l3.245,6.491L19.736,11.5l-6.491,3.245ZM18,21l1.5,3L21,21l3-1.5L21,18l-1.5-3L18,18l-3,1.5ZM19.333,4.667,20.5,7l1.167-2.333L24,3.5,21.667,2.333,20.5,0,19.333,2.333,17,3.5Z"/>
+                    </svg>
+                  </div>
+                  <span className="text-sm"> 
+                    Generating Result
+                  </span> 
+                  <div className="loader ms-1 mt-1" />
                 </div>
               }
                 <span className="summary-container">
@@ -243,9 +248,7 @@ export default function Home() {
                     <div className="grid">
                       <div className="flex items-center justify-center text-sm gap-2 cursor-pointer hover:bg-accent p-2" onClick={handleImageUpload}>
                         <span className="material-icons-outlined">file_upload</span>
-                        {/* <span className="test-sm"> */}
                           Upload image
-                        {/* </span> */}
                       </div>
                       <UrlDialog
                         imageUrl={imageUrl}
