@@ -17,7 +17,7 @@ export function UrlDialog({
     onCloseDialog,
     isValidImageUrl,
     onInputImageUrl,
-    onInserImageUrl
+    onInsertImageUrl
   }) {
 
   useEffect(() => {
@@ -26,14 +26,14 @@ export function UrlDialog({
 
   return (
     <Dialog>
-      <DialogTrigger>
+      {/* <DialogTrigger>
         <div className="flex items-center justify-center text-sm gap-2 cursor-pointer hover:bg-accent p-2">
           <span className="material-icons-outlined">
             link 
           </span>
           <p>Link to image</p>
         </div>
-      </DialogTrigger>
+      </DialogTrigger> */}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Insert image from url</DialogTitle>
@@ -79,7 +79,7 @@ export function UrlDialog({
             <Button
               type="button"
               disabled={!imageUrl || !isValidImageUrl}
-              onClick={onInserImageUrl}
+              onClick={onInsertImageUrl}
             >
               Insert
             </Button>

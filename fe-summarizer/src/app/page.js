@@ -6,6 +6,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  PopoverClose
 } from "@/components/ui/popover";
 
 import { useState, useEffect } from 'react';
@@ -13,8 +14,18 @@ import axios from "axios";
 import { useRef } from 'react'
 import ReactMarkdown from 'react-markdown';
 import InputArea from "@/components/inputArea";
-
+import { Input } from "@/components/ui/input"
 import { UrlDialog } from "@/components/urlDialog";
+
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function Home() {
   const url = process.env.NEXT_PUBLIC_BASE_URL
@@ -149,33 +160,62 @@ export default function Home() {
   const [imageUrl, setImageUrl] = useState('')
 
   const onCloseDialog = () => {
-    setImageUrl('')
+    setTimeout(() => {
+      setImageUrl('')
+    }, 500);
   }
 
-  const [isValidImageUrl, setIsValidImageUrl] = useState(false)
+  const [isValidImageUrl, setIsValidImageUrl] = useState(true)
 
-  function isImgUrl(url) {
-    const img = new Image();
-    img.src = url;
-    return new Promise((resolve) => {
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-    });
+  const [isUrlLoading, setIsUrlLoading] = useState(false);
+
+  async function isImgUrl(url) {
+    console.log(url, '<--- url')
+    await setIsUrlLoading(true);
+    console.log(isUrlLoading, '1 loader');
+    try {
+      const img = new Image();
+      img.src = url;
+      
+      const result = await new Promise((resolve) => {
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+      });
+
+      console.log(result,"result")
+      return result;
+    } finally {
+      setIsUrlLoading(false);
+      console.log(isUrlLoading, '2 loader')
+    }
   }
 
   const onInputImageUrl = async (e) => {
     setImageUrl(e)
     const isValid = await isImgUrl(e)
-    setTimeout(() => {
-      setIsValidImageUrl(isValid)
-    }, 1000);
+    setIsValidImageUrl(isValid)
   }
 
   const [selectedImagesUrl, setSelectedImagesUrl] = useState([])
-  const onInserImageUrl = () => {
+  const onInsertImageUrl = () => {
     setSelectedImages((prevImages) => [...prevImages, imageUrl]);
     setSelectedImagesUrl((prevImages) => [...prevImages, imageUrl]);
     setImageUrl('')
+  }
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const onOpenDialog = () => {
+    setIsPopoverOpen(false)
+    setIsDialogOpen(true)
+    console.log(isDialogOpen, 'dialog', isPopoverOpen, 'popover');
+  }
+
+  const onOpenPopover = () => {
+    setIsPopoverOpen(true)
+    console.log('popover');
+    
   }
 
   return (
@@ -238,7 +278,10 @@ export default function Home() {
                   <span className="material-icons-outlined">attach_file</span>
                 </ToggleGroupItem>
                 
-                <Popover>
+                <Popover
+                  // open={isPopoverOpen}
+                  // onOpenChange={setIsPopoverOpen}
+                >
                   <PopoverTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-transparent h-9 px-3">
                     <span className="material-icons-outlined">
                       image
@@ -246,22 +289,104 @@ export default function Home() {
                   </PopoverTrigger>
                   <PopoverContent>
                     <div className="grid">
-                      <div className="flex items-center justify-center text-sm gap-2 cursor-pointer hover:bg-accent p-2" onClick={handleImageUpload}>
+                      <div
+                        className="flex items-center justify-center text-sm gap-2 cursor-pointer hover:bg-accent p-2"
+                        onClick={handleImageUpload}
+                      >
                         <span className="material-icons-outlined">file_upload</span>
                           Upload image
                       </div>
-                      <UrlDialog
-                        imageUrl={imageUrl}
-                        onCloseDialog={onCloseDialog}
-                        isValidImageUrl={isValidImageUrl}
-                        onInputImageUrl={onInputImageUrl}
-                        onInserImageUrl={onInserImageUrl}
-                      />
+                        <Dialog
+                          // open={isDialogOpen}
+                          // onOpenChange={setIsPopoverOpen}
+                        >
+                            {/* <PopoverClose className="hover:bg-accent"> */}
+                          <DialogTrigger>
+                              <div
+                                className="flex items-center justify-center text-sm gap-2 cursor-pointer hover:bg-accent p-2"
+                                // onClick={onOpenDialog}
+                              >
+                                <span className="material-icons-outlined">
+                                  link 
+                                </span>
+                                <p>Link to image</p>
+                              </div>
+                          </DialogTrigger>
+                            {/* </PopoverClose> */}
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Insert image from url</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex items-center space-x-2">
+                              <div className="grid flex-1 gap-2">
+                                <Input
+                                  id="link"
+                                  value={imageUrl}
+                                  placeholder="Image url"
+                                  onChange={(e) => onInputImageUrl(e.target.value)}
+                                />
+                                <div className="flex justify-center">
+                                    {
+                                      (isUrlLoading && !isValidImageUrl && imageUrl) &&
+                                      <div className="flex">
+                                        <div className="spinner w-28 me-2" />
+                                        <span className="text-sm w-32"> 
+                                          Checking URL
+                                        </span> 
+                                      </ div>
+                                    }
+                                    { 
+                                      (!isUrlLoading && isValidImageUrl && imageUrl) && 
+                                      <div className="w-24 h-24 group">
+                                        <img
+                                          src={imageUrl}
+                                          className="w-full h-full object-cover rounded-md border-2 border-gray-200"
+                                        />
+                                      </div>
+                                    }
+                                    { 
+                                      (!isUrlLoading && !isValidImageUrl && imageUrl) &&
+                                      <span className="text-sm">
+                                        <span type="button" className="text-base text-red-500 me-1 font-bold">
+                                          x
+                                        </span>
+                                        Invalid image URL
+                                      </span>
+                                    }
+                                </div>
+                              </div>
+                            </div>
+                            <DialogFooter className="sm:justify-end">
+                              <DialogClose asChild>
+                                <Button type="button" variant="secondary" onClick={onCloseDialog}>
+                                  Cancel
+                                </Button>
+                              </DialogClose>
+                                <DialogClose asChild>
+                                  <Button
+                                    type="button"
+                                    disabled={!imageUrl || !isValidImageUrl}
+                                    onClick={onInsertImageUrl}
+                                  >
+                                    Insert
+                                  </Button>
+                                </DialogClose>
+                            </DialogFooter>
+                          </DialogContent>
+                          {/* <UrlDialog
+                            imageUrl={imageUrl}
+                            onCloseDialog={onCloseDialog}
+                            isValidImageUrl={isValidImageUrl}
+                            onInputImageUrl={onInputImageUrl}
+                            onInsertImageUrl={onInsertImageUrl}
+                          /> */}
+                        </Dialog>
+                      
                     </div>
                   </PopoverContent>
                 </Popover>
               </ToggleGroup>
-              
+
               <Button
                 onClick={summarize}
                 disabled={isShowLoader || !selectedImages.length && !input && !docs.length}
