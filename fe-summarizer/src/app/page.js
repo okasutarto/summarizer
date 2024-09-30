@@ -48,21 +48,28 @@ export default function Home() {
     const formData = new FormData();
     formData.append('text', input);
     formData.append('threadId', thread.id);
-    images.forEach((file) => {
-      formData.append('images', file); // Append each file to FormData
-    });
     formData.append('docs', docs[0])
-    // selectedImagesUrl.forEach((url) => {
-      formData.append('urls', selectedImagesUrl)
-    // })
-    try {  
+
+    console.log(allImages);
+    
+    // Append all images in order, with type information
+    allImages.forEach((image, index) => {
+      if (image.type === 'file') {
+        formData.append(`images`, image.content);
+        formData.append(`imageTypes`, 'file');
+      } else if (image.type === 'url') {
+        formData.append(`urls`, image.content);
+        formData.append(`imageTypes`, 'url');
+      }
+    });
+    try {
       const response = await axios.post(`${url}/message/create`,formData)
     } catch (error) {
       setIsShowLoader(false)
     }
   }
 
-
+  const [isGeneratingResult, setIsGeneratingResult] = useState(false)
   const summarize = async () => {
     setIsShowLoader(true);
     setResponse('');
@@ -73,6 +80,7 @@ export default function Home() {
     const eventSource = new EventSource(`${url}/summary/create/${thread.id}`);
 
     eventSource.addEventListener('textDelta', (event) => {
+      setIsGeneratingResult(true)
       setIsShowLoader(false)
       const data = JSON.parse(event.data)
       setResponse(prevResponse => prevResponse + data.value);
@@ -82,11 +90,13 @@ export default function Home() {
       console.error('EventSource failed:', error);
       eventSource.close();
       setIsShowLoader(false);
+      setIsGeneratingResult(false)
     };
     
     eventSource.addEventListener('end', () => {
       eventSource.close();
       setIsShowLoader(false);
+      setIsGeneratingResult(false)
       setWords(countWords(response));
     });
   };
@@ -106,6 +116,8 @@ export default function Home() {
   }
 
   const imageInputRef = useRef(null);
+   // New state to keep track of all images (both uploaded and URLs) in order
+  const [allImages, setAllImages] = useState([]);
 
   const handleImageUpload = () => {
     imageInputRef.current.click(); // programmatically click the hidden input
@@ -119,11 +131,13 @@ export default function Home() {
     if (e.target.files) {
       setInput('')
       setDocs([])
-      // divRef.current.innerHTML = null
       filesArray = Array.from(e.target.files); // Convert FileList to Array
 
       // Update the images state with the file objects
-      setImages(prevImages => [...prevImages, ...filesArray])
+      setAllImages((prevImages) => [
+        ...prevImages,
+        ...filesArray.map(file => ({ type: 'file', content: file }))
+      ]);
       const imageUrls = filesArray.map((file) => URL.createObjectURL(file)); // Create URLs for each image
       setSelectedImages((prevImages) => [...prevImages, ...imageUrls]); // Add new images to the state
     }
@@ -131,8 +145,7 @@ export default function Home() {
 
   const handleRemoveImage = (indexToRemove) => {
     setSelectedImages(selectedImages.filter((_, index) => index !== indexToRemove));
-    setImages(images.filter((_, index) => index !== indexToRemove));
-    setSelectedImagesUrl(selectedImagesUrl.filter((_, index) => index !== indexToRemove))
+    setAllImages(allImages.filter((_, index) => index !== indexToRemove));
   };
 
   const docsInputRef = useRef(null);
@@ -147,7 +160,7 @@ export default function Home() {
     if (e.target.files) {
       setInput('')
       setSelectedImages([])
-      setSelectedImagesUrl([])
+      setAllImages([])
       setImages([])
       setDocs(Array.from(e.target.files))
     }
@@ -200,11 +213,11 @@ export default function Home() {
     setIsValidImageUrl(isValid)
   }
 
-  const [selectedImagesUrl, setSelectedImagesUrl] = useState([])
+
   const onInsertImageUrl = () => {
     setInput('')
     setSelectedImages((prevImages) => [...prevImages, imageUrl]);
-    setSelectedImagesUrl((prevImages) => [...prevImages, imageUrl]);
+    setAllImages((prevImages) => [...prevImages, { type: 'url', content: imageUrl }]);
     setImageUrl('')
   }
 
@@ -394,7 +407,7 @@ export default function Home() {
 
               <Button
                 onClick={summarize}
-                disabled={isShowLoader || !selectedImages.length && !input && !docs.length}
+                disabled={isShowLoader || isGeneratingResult ||(!selectedImages.length && !input && !docs.length)}
               >
                 {isShowLoader ? 'Summarizing . . .' : 'Summarize'}
               </Button>
