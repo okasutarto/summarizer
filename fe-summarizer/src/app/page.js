@@ -117,7 +117,7 @@ export default function Home() {
   
   const handleImageChange = (e) => {
     if (e.target.files) {
-      setInput(null)
+      setInput('')
       setDocs([])
       // divRef.current.innerHTML = null
       filesArray = Array.from(e.target.files); // Convert FileList to Array
@@ -145,7 +145,7 @@ export default function Home() {
   
   const handleDocsChange = (e) => {
     if (e.target.files) {
-      setInput(null)
+      setInput('')
       setSelectedImages([])
       setSelectedImagesUrl([])
       setImages([])
@@ -170,23 +170,27 @@ export default function Home() {
   const [isUrlLoading, setIsUrlLoading] = useState(false);
 
   async function isImgUrl(url) {
-    console.log(url, '<--- url')
-    await setIsUrlLoading(true);
-    console.log(isUrlLoading, '1 loader');
+    setIsUrlLoading(true);
     try {
+      const regex = /(https?:\/\/.*\.(?:png|jpg|webp|gif|jpeg))/i
       const img = new Image();
       img.src = url;
       
-      const result = await new Promise((resolve) => {
+      let result = await new Promise((resolve) => {
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
       });
 
-      console.log(result,"result")
+      if (url.match(regex)){
+        result = {
+          match: url.match(regex)
+        }
+      } else {
+        result = false;
+      }
       return result;
     } finally {
       setIsUrlLoading(false);
-      console.log(isUrlLoading, '2 loader')
     }
   }
 
@@ -198,6 +202,7 @@ export default function Home() {
 
   const [selectedImagesUrl, setSelectedImagesUrl] = useState([])
   const onInsertImageUrl = () => {
+    setInput('')
     setSelectedImages((prevImages) => [...prevImages, imageUrl]);
     setSelectedImagesUrl((prevImages) => [...prevImages, imageUrl]);
     setImageUrl('')
