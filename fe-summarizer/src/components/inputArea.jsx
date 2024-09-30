@@ -42,7 +42,7 @@ const InputArea = ({
                       </DialogTrigger>
                       <button
                           onClick={() => handleRemoveImage(index)}
-                          className="absolute -top-2 -right-2 text-white bg-black rounded-full w-5 h-5 flex items-center justify-center shadow-md transition-colors duration-200"
+                          className="absolute -top-2 -right-2 text-white bg-black rounded-full w-5 h-5 flex items-center justify-center shadow-md transition-colors duration-200 hover:bg-red-700"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

@@ -58,10 +58,7 @@ class messageController {
         urlIndex++;
       }
     }
-    
-    console.log(fileIndex, 'image index', urlIndex,'url index');
-    console.log(messageContent);
-    
+
     return messageContent;
   }
 
