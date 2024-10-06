@@ -3,19 +3,14 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 
 const BrieflyAILogo = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" className="h-8 w-auto">
-    <text x="110" y="60" fontSize="50" fontWeight="bold" textAnchor="middle">
-      Summafy
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" className="h-8 w-auto">
+    <text x="220" y="60" fontSize="60" fontWeight="bold" textAnchor="middle">
+      SummaryAI
     </text>
   </svg>
 );
 
 export const NavBar = () => {
-  // const [isOpen, setIsOpen] = useState(false);
-
-  // const toggleMenu = () => {
-  //   setIsOpen(!isOpen);
-  // };
 
   return (
     <nav className="bg-white shadow-md w-full">
@@ -28,7 +23,6 @@ export const NavBar = () => {
           </div>
           <div className="flex items-center sm:hidden">
             <button
-              // onClick={toggleMenu}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
             >
             </button>
