@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Summafy",
+  title: "SummaryAI",
   description: "Summarize everything",
 };
 

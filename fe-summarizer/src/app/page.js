@@ -14,18 +14,7 @@ import axios from "axios";
 import { useRef } from 'react'
 import ReactMarkdown from 'react-markdown';
 import InputArea from "@/components/inputArea";
-import { Input } from "@/components/ui/input"
 import { UrlDialog } from "@/components/urlDialog";
-
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 
 export default function Home() {
   const url = process.env.NEXT_PUBLIC_BASE_URL
