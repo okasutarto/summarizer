@@ -1,6 +1,7 @@
 global.express = require('express')
 const app = express()
-const port = 4000
+require("dotenv").config()
+const port = process.eventNames.PORT || 4000
 const router = require("./routes/index")
 const cors = require('cors')
 
