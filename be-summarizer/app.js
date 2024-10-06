@@ -13,3 +13,5 @@ app
 app.listen(() => {
   console.log("server is running")
 })
+
+module.exports = app
