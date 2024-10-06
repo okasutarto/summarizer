@@ -90,7 +90,7 @@ class messageController {
       console.error("Error creating message:", error);
       res.status(500).json("Error creating message");
     } finally {
-      await messageController.deleteFiles(req.files);
+      // await messageController.deleteFiles(req.files);
     }
   }
 

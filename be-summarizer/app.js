@@ -1,6 +1,7 @@
 global.express = require('express')
 const app = express()
 require("dotenv").config()
+const port = 4000
 const router = require("./routes/index")
 const cors = require('cors')
 
@@ -10,7 +11,7 @@ app
   .use(express.urlencoded({extended: false}))
   .use("/", router)
 
-app.listen(() => {
+app.listen(port, () => {
   console.log("server is running")
 })
 
