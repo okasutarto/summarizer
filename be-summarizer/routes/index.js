@@ -12,4 +12,7 @@ router.use("/thread", threadRouter)
 
 router.use("/message", messageRouter)
 
+router.get("/testing", (req, res) => {
+  res.send("Test route accessed");
+});
 module.exports = router
